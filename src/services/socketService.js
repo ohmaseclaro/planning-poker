@@ -16,8 +16,12 @@ export const initSocket = () => {
       return null;
     }
     
-    // Connect to the same origin with explicit socket.io path and include auth token
-    socket = io(window.location.origin, {
+    // Get socket URL from env or fall back to same origin
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
+    console.log('Connecting to socket URL:', socketUrl);
+    
+    // Connect with explicit socket.io path and include auth token
+    socket = io(socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
       auth: {
