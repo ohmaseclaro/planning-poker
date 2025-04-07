@@ -1,0 +1,47 @@
+{
+  "name": "planning-poker-clone",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "vite",
+    "dev:server": "nest start --watch",
+    "build": "vite build && nest build",
+    "start": "node dist/main.js",
+    "prod": "npm run build && npm run start"
+  },
+  "dependencies": {
+    "@nestjs/common": "^9.4.0",
+    "@nestjs/core": "^9.4.0",
+    "@nestjs/microservices": "^9.4.0",
+    "@nestjs/platform-express": "^9.4.0",
+    "@nestjs/platform-socket.io": "^9.4.0",
+    "@nestjs/serve-static": "^5.0.3",
+    "@nestjs/websockets": "^9.4.0",
+    "archiver": "^7.0.1",
+    "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.10.0",
+    "redis": "^4.6.5",
+    "reflect-metadata": "^0.1.13",
+    "socket.io": "^4.6.1",
+    "socket.io-client": "^4.6.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^9.4.0",
+    "@types/dotenv": "^8.2.3",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@types/reflect-metadata": "^0.1.0",
+    "@vitejs/plugin-react": "^3.1.0",
+    "autoprefixer": "^10.4.14",
+    "concurrently": "^8.0.1",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.3.1",
+    "typescript": "^4.9.5",
+    "vite": "^4.2.0"
+  }
+}
