@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as express from 'express';
+import compression from 'compression';
 import { existsSync } from 'fs';
 import { config } from 'dotenv';
 
@@ -13,6 +14,9 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: true,
   });
+
+  // Enable compression for all HTTP responses
+  app.use(compression());
 
   // Set global prefix for API routes
   app.setGlobalPrefix('api');

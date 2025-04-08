@@ -23,7 +23,7 @@ interface User {
   cors: {
     origin: '*',
   },
-  transports: ['websocket', 'polling'],
+  transports: ['websocket'],
   path: '/socket.io',
 })
 @Injectable()
