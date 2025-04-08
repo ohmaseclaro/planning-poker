@@ -85,6 +85,16 @@ export class PlanningPokerGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @UseGuards(WsAuthGuard)
+  @SubscribeMessage('updateUsername')
+  async handleUpdateUsername(client: Socket, payload: { roomId: string; username: string }) {
+    const { roomId, username } = payload;
+    this.redisController.updateUserName({ roomId, userId: client.id, name: username });
+
+    const users = this.redisController.getRoomUsers({ roomId });
+    this.server.to(roomId).emit('updateUsers', users);
+  }
+
+  @UseGuards(WsAuthGuard)
   @SubscribeMessage('throwEmoji')
   async handleThrowEmoji(
     client: Socket,

@@ -115,6 +115,15 @@ export const updateAvatar = (roomId, avatar) => {
   }
 };
 
+export const updateUsername = (roomId, username) => {
+  if (socket) {
+    // Update the username in localStorage
+    localStorage.setItem('userName', username);
+    // Send the update to the server
+    socket.emit('updateUsername', { roomId, username });
+  }
+};
+
 export const disconnectSocket = () => {
   if (socket) {
     socket.disconnect();

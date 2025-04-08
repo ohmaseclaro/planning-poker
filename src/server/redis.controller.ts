@@ -261,6 +261,28 @@ export class RedisController implements OnModuleInit {
     return true;
   }
 
+  @MessagePattern({ cmd: 'updateUserName' })
+  updateUserName(data: { roomId: string; userId: string; name: string }): boolean {
+    const { roomId, userId, name } = data;
+
+    if (!this.rooms.has(roomId) || !this.rooms.get(roomId).has(userId)) {
+      return false;
+    }
+
+    // Update room activity
+    this.updateRoomActivity(roomId);
+
+    const user = this.rooms.get(roomId).get(userId);
+    user.name = name;
+    // Ensure we preserve the user's position when updating the name
+    if (this.roomPositions.has(roomId) && this.roomPositions.get(roomId).has(userId)) {
+      user.position = this.roomPositions.get(roomId).get(userId);
+    }
+    this.rooms.get(roomId).set(userId, user);
+
+    return true;
+  }
+
   @MessagePattern({ cmd: 'getUserPosition' })
   getUserPosition(data: { roomId: string; userId: string }): number | null {
     const { roomId, userId } = data;
