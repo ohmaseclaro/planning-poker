@@ -186,7 +186,7 @@ function Room() {
   };
 
   // Show loading screen if socket is not yet connected or avatar not loaded
-  if (!socket || !avatarLoaded) {
+  if (!socket || !avatarLoaded || !users?.length) {
     return <LoadingScreen />;
   }
 
