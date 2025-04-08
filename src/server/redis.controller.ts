@@ -16,6 +16,7 @@ export class RedisController implements OnModuleInit {
   private userRooms: Map<string, Set<string>> = new Map();
   private roomPositions: Map<string, Map<string, number>> = new Map();
   private roomLastActivity: Map<string, number> = new Map();
+  private roomUsernames: Map<string, Map<string, string>> = new Map();
   private cleanupInterval: NodeJS.Timeout;
   private roomIdleTimeout: number;
 
@@ -76,20 +77,26 @@ export class RedisController implements OnModuleInit {
         // Delete the room and its positions
         this.rooms.delete(roomId);
         this.roomPositions.delete(roomId);
+        this.roomUsernames.delete(roomId);
         this.roomLastActivity.delete(roomId);
       }
     });
   }
 
   @MessagePattern({ cmd: 'addUserToRoom' })
-  addUserToRoom(data: { roomId: string; user: User }): boolean {
+  addUserToRoom(data: { roomId: string; user: User }): string | false {
     const { roomId, user } = data;
 
     // Create room if it doesn't exist
     if (!this.rooms.has(roomId)) {
       this.rooms.set(roomId, new Map());
       this.roomPositions.set(roomId, new Map());
+      this.roomUsernames.set(roomId, new Map());
     }
+
+    // Check if this username already exists in the room (duplicate login)
+    const existingSocketId = this.roomUsernames.get(roomId).get(user.name);
+    const isDuplicateLogin = existingSocketId && existingSocketId !== user.id;
 
     // Preserve existing position if the user is rejoining
     const positionsMap = this.roomPositions.get(roomId);
@@ -111,10 +118,13 @@ export class RedisController implements OnModuleInit {
     }
     this.userRooms.get(user.id).add(roomId);
 
+    // Store username to socket mapping
+    this.roomUsernames.get(roomId).set(user.name, user.id);
+
     // Update room activity
     this.updateRoomActivity(roomId);
 
-    return true;
+    return isDuplicateLogin ? existingSocketId : false;
   }
 
   @MessagePattern({ cmd: 'getRoomUsers' })
@@ -201,12 +211,24 @@ export class RedisController implements OnModuleInit {
     // Update room activity
     this.updateRoomActivity(roomId);
 
+    // Get user before removing
+    const user = this.rooms.get(roomId).get(userId);
+
     // Remove user from room
     this.rooms.get(roomId).delete(userId);
 
     // Remove user's position
     if (this.roomPositions.has(roomId)) {
       this.roomPositions.get(roomId).delete(userId);
+    }
+
+    // Remove username mapping if it's for this socket
+    if (user && this.roomUsernames.has(roomId)) {
+      const usernameMap = this.roomUsernames.get(roomId);
+      // Only delete if this socketId is the current one for this username
+      if (usernameMap.get(user.name) === userId) {
+        usernameMap.delete(user.name);
+      }
     }
 
     // Remove room from user's room list
@@ -218,6 +240,7 @@ export class RedisController implements OnModuleInit {
     if (this.rooms.get(roomId).size === 0) {
       this.rooms.delete(roomId);
       this.roomPositions.delete(roomId);
+      this.roomUsernames.delete(roomId);
       this.roomLastActivity.delete(roomId);
     }
 
@@ -272,13 +295,26 @@ export class RedisController implements OnModuleInit {
     // Update room activity
     this.updateRoomActivity(roomId);
 
+    // Get the old user data
     const user = this.rooms.get(roomId).get(userId);
-    user.name = name;
-    // Ensure we preserve the user's position when updating the name
-    if (this.roomPositions.has(roomId) && this.roomPositions.get(roomId).has(userId)) {
-      user.position = this.roomPositions.get(roomId).get(userId);
+    const oldName = user.name;
+
+    // Remove old username mapping
+    if (this.roomUsernames.has(roomId)) {
+      const usernameMap = this.roomUsernames.get(roomId);
+      if (usernameMap.get(oldName) === userId) {
+        usernameMap.delete(oldName);
+      }
     }
+
+    // Update the user's name
+    user.name = name;
     this.rooms.get(roomId).set(userId, user);
+
+    // Add new username mapping
+    if (this.roomUsernames.has(roomId)) {
+      this.roomUsernames.get(roomId).set(name, userId);
+    }
 
     return true;
   }

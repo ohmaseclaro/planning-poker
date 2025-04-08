@@ -49,6 +49,15 @@ export const initSocket = () => {
         window.location.href = '/';
       }
     });
+    
+    // Handle duplicate login notification
+    socket.on('duplicate_login', (data) => {
+      console.log('Duplicate login detected:', data);
+      // Show alert with the message
+      alert(data.message || 'You have been disconnected because your account logged in elsewhere.');
+      // Redirect to home page after acknowledgment
+      window.location.href = '/';
+    });
   }
   return socket;
 };

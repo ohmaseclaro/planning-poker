@@ -67,8 +67,30 @@ export class PlanningPokerGateway implements OnGatewayConnection, OnGatewayDisco
     const { roomId, name, avatar } = payload;
     const user: User = { id: client.id, name, vote: null, avatar };
 
-    this.redisController.addUserToRoom({ roomId, user });
-    client.join(roomId);
+    // Check for duplicate login (same username in the same room)
+    const existingSocketId = this.redisController.addUserToRoom({ roomId, user });
+
+    if (existingSocketId) {
+      console.log(`Duplicate login detected for user ${name} in room ${roomId}`);
+      console.log(`Disconnecting previous session: ${existingSocketId}`);
+
+      // Get the socket of the previous session and disconnect it
+      const existingSocket = this.server.sockets.sockets.get(existingSocketId);
+      if (existingSocket) {
+        // Send a message to the client that will be disconnected
+        existingSocket.emit('duplicate_login', {
+          message: 'You have been disconnected because you logged in from another tab or browser.',
+        });
+        // Force disconnect the socket
+        existingSocket.disconnect(true);
+      }
+
+      // Continue with adding the new user as normal
+      client.join(roomId);
+    } else {
+      // Normal case (no duplicate)
+      client.join(roomId);
+    }
 
     const users = this.redisController.getRoomUsers({ roomId });
     this.server.to(roomId).emit('updateUsers', users);
