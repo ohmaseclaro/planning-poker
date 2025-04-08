@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
 import { getUserPosition, getUserPixelCoordinates } from '../../utils/positionUtils';
-import { calculateAverage, getClosestFibonacci } from '../../utils/calculationUtils';
+import {
+  calculateAverage,
+  calculateMedian,
+  getClosestFibonacci,
+} from '../../utils/calculationUtils';
 import UserCard from './UserCard';
 
 const PokerTable = ({
@@ -79,7 +83,7 @@ const PokerTable = ({
             <div className="flex justify-between text-white text-sm sm:text-base px-2">
               <p className="font-semibold">Average: {calculateAverage(users)}</p>
               <p className="font-semibold">
-                Closest: {getClosestFibonacci(calculateAverage(users))}
+                Closest: {getClosestFibonacci(calculateMedian(users))}
               </p>
             </div>
           </div>

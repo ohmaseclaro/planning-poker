@@ -10,6 +10,24 @@ export const calculateAverage = (users) => {
   return (sum / votes.length).toFixed(1);
 };
 
+export const calculateMedian = (users) => {
+  const votes = users
+    .map((user) => user.vote)
+    .filter((vote) => vote !== null && vote !== "?");
+  
+  if (votes.length === 0) return 0;
+  
+  // Sort votes in ascending order
+  const sortedVotes = [...votes].sort((a, b) => a - b);
+  
+  // Get the middle value (or average of the two middle values)
+  const mid = Math.floor(sortedVotes.length / 2);
+  
+  return sortedVotes.length % 2 === 0
+    ? ((sortedVotes[mid - 1] + sortedVotes[mid]) / 2).toFixed(1)
+    : sortedVotes[mid].toFixed(1);
+};
+
 export const getClosestFibonacci = (avg) => {
   if (avg === 0) return 0;
   const average = parseFloat(avg);
