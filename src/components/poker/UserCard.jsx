@@ -1,6 +1,11 @@
 import React from 'react';
 
-const UserCard = ({ user, position, onClick, emojis }) => {
+const UserCard = ({ user, position, onClick, emojis = [] }) => {
+  // Debug logging for emoji animations
+  if (emojis && emojis.length > 0) {
+    console.log('Rendering UserCard with emojis:', emojis);
+  }
+
   return (
     <div
       className="absolute flex flex-col items-center z-10"
@@ -26,17 +31,19 @@ const UserCard = ({ user, position, onClick, emojis }) => {
       </span>
 
       {/* Emoji animations at destination */}
-      {emojis.map((emoji) => (
-        <div
-          key={emoji.id}
-          className="absolute text-xl sm:text-2xl animate-bounce-in z-20"
-          style={{
-            top: '-20px',
-          }}
-        >
-          {emoji.emoji}
-        </div>
-      ))}
+      {emojis &&
+        emojis.map((emoji) => (
+          <div
+            key={emoji.id}
+            className="absolute text-xl sm:text-2xl animate-bounce-in z-20"
+            style={{
+              top: '-20px',
+              animation: 'bounceIn 1s ease-out forwards',
+            }}
+          >
+            {emoji.emoji}
+          </div>
+        ))}
     </div>
   );
 };

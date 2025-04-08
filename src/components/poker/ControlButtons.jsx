@@ -1,6 +1,15 @@
 import React from 'react';
 
-const ControlButtons = ({ showResults, onShowResults, onStartTimer, onResetVotes }) => {
+const ControlButtons = ({
+  showResults,
+  onShowResults,
+  onStartTimer,
+  onResetVotes,
+  onOpenTimerPrompt,
+  onOpenThemePicker,
+  onOpenAvatarOptions,
+  allVoted,
+}) => {
   return (
     <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 px-2">
       {!showResults && (
@@ -12,7 +21,7 @@ const ControlButtons = ({ showResults, onShowResults, onStartTimer, onResetVotes
             Show Results
           </button>
           <button
-            onClick={onStartTimer}
+            onClick={onOpenTimerPrompt}
             className="bg-yellow-500 text-white text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-md hover:bg-yellow-600 transition-colors"
           >
             Start Timer
@@ -28,15 +37,6 @@ const ControlButtons = ({ showResults, onShowResults, onStartTimer, onResetVotes
           New Round
         </button>
       )}
-
-      <button
-        onClick={onResetVotes}
-        className={`bg-red-500 text-white text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-md hover:bg-red-600 transition-colors ${
-          !showResults ? '' : 'hidden'
-        }`}
-      >
-        Reset Votes
-      </button>
     </div>
   );
 };

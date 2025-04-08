@@ -1,18 +1,33 @@
 import React from 'react';
 import { EMOJIS } from '../../constants/pokingPokerConstants';
 
-const EmojiPickerModal = ({ show, user, onEmojiClick, onClose }) => {
-  if (!show || !user) return null;
+const EmojiPickerModal = ({ show = true, user, onEmojiClick, onEmojiSelect, onClose, emojis }) => {
+  if (!show) return null;
+
+  // Support both user and direct emojis props
+  const emojisList = emojis || EMOJIS;
+
+  // If onEmojiClick or onEmojiSelect is provided use it, otherwise use onClose
+  const handleEmojiClick = (emoji) => {
+    if (onEmojiSelect) {
+      onEmojiSelect(emoji);
+    } else if (onEmojiClick) {
+      onEmojiClick(emoji);
+    }
+    // Don't automatically close if neither handler exists
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10 p-4">
       <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg w-full max-w-xs sm:max-w-sm">
-        <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Send emoji to {user.name}</h3>
+        <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
+          {user ? `Send emoji to ${user.name}` : 'Select an emoji'}
+        </h3>
         <div className="grid grid-cols-5 gap-2">
-          {EMOJIS.map((emoji) => (
+          {emojisList.map((emoji) => (
             <button
               key={emoji}
-              onClick={() => onEmojiClick(emoji)}
+              onClick={() => handleEmojiClick(emoji)}
               className="text-xl sm:text-2xl p-1 sm:p-2 hover:bg-gray-100 rounded"
             >
               {emoji}

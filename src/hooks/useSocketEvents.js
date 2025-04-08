@@ -107,6 +107,7 @@ export const useSocketEvents = (roomId, userAvatar) => {
 
     // Emoji thrown event
     const handleEmojiThrown = (data) => {
+      console.log('Received emojiThrown event:', data);
       const { emoji, targetId, sourceId } = data;
       const emojiId = Date.now() + Math.random();
 
@@ -117,7 +118,11 @@ export const useSocketEvents = (roomId, userAvatar) => {
       const sourceUser = currentUsers.find((u) => u.id === sourceId);
       const targetUser = currentUsers.find((u) => u.id === targetId);
 
+      console.log('Source user found:', sourceUser ? 'yes' : 'no');
+      console.log('Target user found:', targetUser ? 'yes' : 'no');
+
       if (sourceUser && targetUser) {
+        console.log('Creating traveling emoji');
         // Create a traveling emoji that starts from the source
         setTravelingEmojis((prev) => [
           ...prev,
@@ -132,6 +137,7 @@ export const useSocketEvents = (roomId, userAvatar) => {
 
         // Remove traveling emoji after animation completes
         setTimeout(() => {
+          console.log('Animation complete, transitioning to bounce emoji');
           setTravelingEmojis((prev) => prev.filter((e) => e.id !== emojiId));
 
           // Add the bounce emoji at target location

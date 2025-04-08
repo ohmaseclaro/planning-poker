@@ -1,7 +1,17 @@
 import React from 'react';
 
-const TimerPromptModal = ({ show, duration, onDurationChange, onStart, onClose }) => {
+const TimerPromptModal = ({
+  show = true,
+  duration,
+  onDurationChange,
+  onStart,
+  onClose,
+  onStartTimer,
+}) => {
   if (!show) return null;
+
+  // Support both naming conventions
+  const handleStart = onStart || onStartTimer;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10 p-4">
@@ -28,7 +38,7 @@ const TimerPromptModal = ({ show, duration, onDurationChange, onStart, onClose }
             Cancel
           </button>
           <button
-            onClick={onStart}
+            onClick={handleStart}
             className="bg-blue-500 text-white text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2 rounded hover:bg-blue-600"
           >
             Start

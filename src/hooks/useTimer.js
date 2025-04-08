@@ -9,13 +9,17 @@ export const useTimer = (socket, roomId, onTimerEnd) => {
   // Don't need to track timer end here as it's now handled in useSocketEvents
   // But we'll keep the callback for compatibility
   
-  const handleStartTimer = () => {
+  const openTimerPrompt = () => {
     setShowTimerPrompt(true);
   };
 
-  const startTimer = () => {
+  const handleStartTimer = () => {
     console.log(`Starting timer for ${timerDuration} seconds`);
-    startSocketTimer(roomId, timerDuration);
+    if (socket && roomId) {
+      startSocketTimer(roomId, timerDuration);
+    } else {
+      console.error('Cannot start timer: socket or roomId is missing');
+    }
     setShowTimerPrompt(false);
   };
 
@@ -26,7 +30,7 @@ export const useTimer = (socket, roomId, onTimerEnd) => {
     setShowTimerPrompt,
     timerDuration,
     setTimerDuration,
-    handleStartTimer,
-    startTimer
+    openTimerPrompt,
+    handleStartTimer
   };
 }; 

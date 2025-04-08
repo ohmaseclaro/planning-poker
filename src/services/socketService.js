@@ -100,8 +100,12 @@ export const startTimer = (roomId, duration) => {
 };
 
 export const throwEmoji = (roomId, emoji, targetId, sourceId) => {
+  console.log('throwEmoji called:', { roomId, emoji, targetId, sourceId });
   if (socket) {
+    console.log('Emitting throwEmoji event');
     socket.emit('throwEmoji', { roomId, emoji, targetId, sourceId });
+  } else {
+    console.error('Socket not available for emoji throw');
   }
 };
 

@@ -9,6 +9,7 @@ export const useAvatar = (socket, roomId) => {
   });
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [showAvatarOptions, setShowAvatarOptions] = useState(false);
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
 
   // Initialize avatar if not already set
   useEffect(() => {
@@ -17,11 +18,14 @@ export const useAvatar = (socket, roomId) => {
         const username = localStorage.getItem('userName');
         if (!username) return;
         try {
+          setIsGeneratingAvatar(true);
           const avatarData = await fetchAvatar(getUsernameAvatarUrl(username));
           setUserAvatar(avatarData);
           localStorage.setItem('userAvatar', avatarData);
         } catch (error) {
           console.error('Failed to initialize avatar:', error);
+        } finally {
+          setIsGeneratingAvatar(false);
         }
       }
     };
@@ -38,10 +42,13 @@ export const useAvatar = (socket, roomId) => {
 
   const getRandomAvatar = async () => {
     try {
+      setIsGeneratingAvatar(true);
       const avatarData = await fetchAvatar(getRandomAvatarUrl());
       setPreviewAvatar(avatarData);
     } catch (error) {
       console.error('Failed to get random avatar:', error);
+    } finally {
+      setIsGeneratingAvatar(false);
     }
   };
 
@@ -64,6 +71,7 @@ export const useAvatar = (socket, roomId) => {
     showAvatarOptions,
     setShowAvatarOptions,
     getRandomAvatar,
-    saveAvatar
+    saveAvatar,
+    isGeneratingAvatar
   };
 }; 

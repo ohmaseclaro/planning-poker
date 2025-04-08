@@ -41,12 +41,34 @@ const THEME_COLORS = [
   { name: 'Teal', table: 'bg-teal-700', inner: 'bg-teal-600', bg: 'bg-teal-800' },
 ];
 
+// Loading component
+const LoadingScreen = () => {
+  const [dots, setDots] = useState('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-gray-100">
+      <img src={yottaaLogo} alt="Yottaa Logo" className="w-32 h-32 mb-8 animate-pulse" />
+      <div className="text-xl font-semibold text-gray-700">
+        Connecting to the server<span className="inline-block w-8">{dots}</span>
+      </div>
+    </div>
+  );
+};
+
 function Room() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const [selectedCard, setSelectedCard] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
 
   // Check if username and auth token exist
   useEffect(() => {
@@ -89,6 +111,7 @@ function Room() {
     setShowAvatarOptions,
     getRandomAvatar,
     saveAvatar,
+    isGeneratingAvatar,
   } = useAvatar(socket, roomId);
 
   // Add a diagnostic effect to verify socket and users
@@ -96,6 +119,14 @@ function Room() {
     console.log('Room component - socket status:', socket ? 'connected' : 'not connected');
     console.log('Room component - users:', users);
   }, [socket, users]);
+
+  // Effect to check if the current user's avatar is loaded
+  useEffect(() => {
+    if (socket && userAvatar) {
+      console.log('Avatar loaded, ready to show room');
+      setAvatarLoaded(true);
+    }
+  }, [socket, userAvatar]);
 
   // Effect to clear selected card when results are shown
   useEffect(() => {
@@ -115,8 +146,8 @@ function Room() {
     setShowTimerPrompt,
     timerDuration,
     setTimerDuration,
+    openTimerPrompt,
     handleStartTimer,
-    startTimer,
   } = useTimer(socket, roomId, handleShowResults);
 
   // Effect to update the server with the avatar when userAvatar changes
@@ -147,10 +178,17 @@ function Room() {
 
   const handleThrowEmoji = (emoji) => {
     if (selectedUser && socket) {
+      console.log('Throwing emoji:', emoji, 'from:', socket.id, 'to:', selectedUser.id);
       throwEmoji(roomId, emoji, selectedUser.id, socket.id);
       setShowEmojiPicker(false);
+      setSelectedUser(null);
     }
   };
+
+  // Show loading screen if socket is not yet connected or avatar not loaded
+  if (!socket || !avatarLoaded) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className={`min-h-screen ${theme.bg} flex items-center justify-center p-2 sm:p-4`}>
@@ -166,11 +204,12 @@ function Room() {
           theme={theme}
           users={users}
           usersRef={usersRef}
-          userPositions={userPositions}
-          userPositionsRef={userPositionsRef}
+          socket={socket}
           showResults={showResults}
           timer={timer}
           roomId={roomId}
+          userPositions={userPositions}
+          userPositionsRef={userPositionsRef}
           travelingEmojis={travelingEmojis}
           emojis={emojis}
           onUserClick={handleUserClick}
@@ -181,46 +220,57 @@ function Room() {
           selectedCard={selectedCard}
           showResults={showResults}
           onCardSelect={handleCardSelect}
+          sequence={FIBONACCI_SEQUENCE}
         />
 
         {/* Control buttons */}
         <ControlButtons
           showResults={showResults}
           onShowResults={handleShowResults}
-          onStartTimer={handleStartTimer}
           onResetVotes={handleResetVotes}
+          onOpenTimerPrompt={openTimerPrompt}
+          onOpenThemePicker={() => setShowThemePicker(true)}
+          onOpenAvatarOptions={() => setShowAvatarOptions(true)}
+          allVoted={users.length > 0 && users.every((user) => user.vote !== null)}
         />
 
         {/* Modals */}
-        <EmojiPickerModal
-          show={showEmojiPicker}
-          user={selectedUser}
-          onEmojiClick={handleThrowEmoji}
-          onClose={() => setShowEmojiPicker(false)}
-        />
+        {showEmojiPicker && (
+          <EmojiPickerModal
+            emojis={EMOJIS}
+            user={selectedUser}
+            onEmojiSelect={handleThrowEmoji}
+            onClose={() => setShowEmojiPicker(false)}
+          />
+        )}
 
-        <ThemePickerModal
-          show={showThemePicker}
-          currentTheme={theme}
-          onThemeChange={changeTheme}
-          onClose={() => setShowThemePicker(false)}
-        />
+        {showThemePicker && (
+          <ThemePickerModal
+            themes={THEME_COLORS}
+            onThemeSelect={changeTheme}
+            onClose={() => setShowThemePicker(false)}
+          />
+        )}
 
-        <AvatarOptionsModal
-          show={showAvatarOptions}
-          previewAvatar={previewAvatar}
-          onGetRandom={getRandomAvatar}
-          onSave={saveAvatar}
-          onClose={() => setShowAvatarOptions(false)}
-        />
+        {showAvatarOptions && (
+          <AvatarOptionsModal
+            currentAvatar={userAvatar}
+            previewAvatar={previewAvatar}
+            onGetRandomAvatar={getRandomAvatar}
+            onSaveAvatar={saveAvatar}
+            onClose={() => setShowAvatarOptions(false)}
+            isGeneratingAvatar={isGeneratingAvatar}
+          />
+        )}
 
-        <TimerPromptModal
-          show={showTimerPrompt}
-          duration={timerDuration}
-          onDurationChange={setTimerDuration}
-          onStart={startTimer}
-          onClose={() => setShowTimerPrompt(false)}
-        />
+        {showTimerPrompt && (
+          <TimerPromptModal
+            duration={timerDuration}
+            onDurationChange={setTimerDuration}
+            onStartTimer={handleStartTimer}
+            onClose={() => setShowTimerPrompt(false)}
+          />
+        )}
       </div>
     </div>
   );

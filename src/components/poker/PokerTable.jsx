@@ -22,6 +22,13 @@ const PokerTable = ({
     console.log('userPositions:', userPositions);
   }, [users, userPositions]);
 
+  // Debug log for traveling emojis
+  useEffect(() => {
+    if (travelingEmojis.length > 0) {
+      console.log('Traveling emojis:', travelingEmojis);
+    }
+  }, [travelingEmojis]);
+
   // Make the table bigger when there are more users
   const getTableSizeClass = () => {
     const userCount = users?.length || 0;
@@ -50,39 +57,43 @@ const PokerTable = ({
 
   return (
     <div className="relative mb-8 mt-4 mx-auto px-8">
-      {/* Results display outside the table */}
-      {showResults && users && users.length > 0 && (
-        <div className="mb-4 bg-gray-800 bg-opacity-80 p-3 rounded-lg mx-auto max-w-xs sm:max-w-sm md:max-w-md">
-          <h3 className="text-lg font-bold text-white mb-2 text-center">Results</h3>
-          <div className="flex flex-wrap justify-center gap-2 mb-3">
-            {users
-              .filter((user) => user.vote !== null)
-              .map((user) => (
-                <div key={user.id} className="flex flex-col items-center">
-                  <div className="w-8 h-10 sm:w-10 sm:h-12 bg-blue-500 text-white rounded-md flex items-center justify-center text-sm font-bold shadow-md">
-                    {user.vote}
+      {/* Results display - always reserve space */}
+      <div className="min-h-[100px] mb-4">
+        {showResults && users && users.length > 0 && (
+          <div className="bg-gray-800 bg-opacity-80 p-3 rounded-lg mx-auto max-w-xs sm:max-w-sm md:max-w-md">
+            <h3 className="text-lg font-bold text-white mb-2 text-center">Results</h3>
+            <div className="flex flex-wrap justify-center gap-2 mb-3">
+              {users
+                .filter((user) => user.vote !== null)
+                .map((user) => (
+                  <div key={user.id} className="flex flex-col items-center">
+                    <div className="w-8 h-10 sm:w-10 sm:h-12 bg-blue-500 text-white rounded-md flex items-center justify-center text-sm font-bold shadow-md">
+                      {user.vote}
+                    </div>
+                    <span className="text-xs text-white mt-1 whitespace-nowrap max-w-[60px] truncate">
+                      {user.name}
+                    </span>
                   </div>
-                  <span className="text-xs text-white mt-1 whitespace-nowrap max-w-[60px] truncate">
-                    {user.name}
-                  </span>
-                </div>
-              ))}
+                ))}
+            </div>
+            <div className="flex justify-between text-white text-sm sm:text-base px-2">
+              <p className="font-semibold">Average: {calculateAverage(users)}</p>
+              <p className="font-semibold">
+                Closest: {getClosestFibonacci(calculateAverage(users))}
+              </p>
+            </div>
           </div>
-          <div className="flex justify-between text-white text-sm sm:text-base px-2">
-            <p className="font-semibold">Average: {calculateAverage(users)}</p>
-            <p className="font-semibold">Closest: {getClosestFibonacci(calculateAverage(users))}</p>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Timer display outside the table */}
-      {timer > 0 && (
-        <div className="mb-4 text-center">
+      <div className="min-h-[40px] mb-4 text-center">
+        {timer > 0 && (
           <p className="text-xl font-semibold text-white bg-gray-800 bg-opacity-80 inline-block px-4 py-1 rounded-full">
             Timer: {timer}s
           </p>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Poker table wrapper - provides positioning context */}
       <div className="relative flex items-center justify-center">
@@ -102,39 +113,48 @@ const PokerTable = ({
           </div>
 
           {/* Traveling emojis */}
-          {travelingEmojis.map((emoji) => {
-            // Get source and target positions
-            const sourceCoords = getUserPixelCoordinates(
-              emoji.sourceId,
-              usersRef.current,
-              userPositionsRef.current
-            );
-            const targetCoords = getUserPixelCoordinates(
-              emoji.targetId,
-              usersRef.current,
-              userPositionsRef.current
-            );
+          {travelingEmojis &&
+            travelingEmojis.length > 0 &&
+            travelingEmojis.map((emoji) => {
+              // Get source and target positions
+              const sourceCoords = getUserPixelCoordinates(
+                emoji.sourceId,
+                usersRef.current,
+                userPositionsRef.current
+              );
+              const targetCoords = getUserPixelCoordinates(
+                emoji.targetId,
+                usersRef.current,
+                userPositionsRef.current
+              );
 
-            return (
-              <div
-                key={emoji.id}
-                className="absolute text-2xl animate-emoji-travel z-30"
-                style={{
-                  // Position at the source player initially
-                  top: `calc(50% + ${sourceCoords.y}px)`,
-                  left: `calc(50% + ${sourceCoords.x}px)`,
-                  transformOrigin: 'center center',
-                  // Use relative coordinates for the animation
-                  '--travel-start-x': '0px',
-                  '--travel-start-y': '0px',
-                  '--travel-end-x': `${targetCoords.x - sourceCoords.x}px`,
-                  '--travel-end-y': `${targetCoords.y - sourceCoords.y}px`,
-                }}
-              >
-                {emoji.emoji}
-              </div>
-            );
-          })}
+              console.log('Emoji animation coords:', {
+                source: sourceCoords,
+                target: targetCoords,
+                emoji: emoji.emoji,
+              });
+
+              return (
+                <div
+                  key={emoji.id}
+                  className="absolute text-2xl animate-emoji-travel z-30"
+                  style={{
+                    // Position at the source player initially
+                    top: `calc(50% + ${sourceCoords.y}px)`,
+                    left: `calc(50% + ${sourceCoords.x}px)`,
+                    transformOrigin: 'center center',
+                    // Use relative coordinates for the animation
+                    '--travel-start-x': '0px',
+                    '--travel-start-y': '0px',
+                    '--travel-end-x': `${targetCoords.x - sourceCoords.x}px`,
+                    '--travel-end-y': `${targetCoords.y - sourceCoords.y}px`,
+                    animation: 'emojiTravel 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards',
+                  }}
+                >
+                  {emoji.emoji}
+                </div>
+              );
+            })}
         </div>
 
         {/* Users around the table - positioned outside */}
